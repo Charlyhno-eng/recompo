@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+@import "@skeletonlabs/skeleton";
+@import "@skeletonlabs/skeleton-svelte";
+@import "@skeletonlabs/skeleton/themes/cerberus";
+
+body {
+    @apply min-h-screen font-sans text-surface-50 antialiased;
+    /* 1 = violet, 2 = turquoise, 3–5 = halos secondaires + fond noir */
+    background:
+        radial-gradient(
+            circle at var(--violet-x, 0%) var(--violet-y, 0%),
+            rgba(139, 92, 246, 0.35),
+            transparent 55%
+        ),
+        radial-gradient(
+            circle at var(--cyan-x, 100%) var(--cyan-y, 0%),
+            rgba(34, 197, 235, 0.35),
+            transparent 55%
+        ),
+        radial-gradient(
+            circle at 0% 100%,
+            rgba(244, 63, 94, 0.18),
+            transparent 45%
+        ),
+        radial-gradient(
+            circle at 100% 100%,
+            rgba(52, 211, 153, 0.15),
+            transparent 45%
+        ),
+        radial-gradient(
+            circle at 50% 120%,
+            rgba(2, 6, 23, 1),
+            rgba(2, 6, 23, 1)
+        );
+    background-color: #020617;
+    background-blend-mode: screen, screen, screen, screen, normal;
+    background-size: 140% 140%;
+    animation: bg-shift-positions 24s ease-in-out infinite alternate;
+}

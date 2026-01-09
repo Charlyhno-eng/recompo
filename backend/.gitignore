@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.pyo
+*.pytest_cache/
+*.coverage
+*.cover
+htmlcov/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# FastAPI / Uvicorn
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,39 @@
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.responses import StreamingResponse
+import uvicorn
+
+from core.logging_config import setup_logging
+from core.config import setup_cors
+from services.video_generator import generate_segments_zip
+
+logger = setup_logging()
+app = FastAPI()
+setup_cors(app)
+
+
+@app.post("/generate")
+async def generate_videos(
+    audio: UploadFile = File(...),
+    video: UploadFile = File(...),
+    parts: int = Form(...),
+):
+    logger.info(
+        "Received /generate request: parts=%s, audio=%s, video=%s",
+        parts,
+        audio.filename,
+        video.filename,
+    )
+
+    if parts < 2 or parts > 30:
+        logger.error("Invalid parts value: %s", parts)
+        raise HTTPException(status_code=400, detail="parts must be between 2 and 30")
+
+    zip_buffer = await generate_segments_zip(audio=audio, video=video, parts=parts)
+
+    headers = {"Content-Disposition": 'attachment; filename="videos.zip"'}
+    logger.info("Sending zip response")
+    return StreamingResponse(zip_buffer, media_type="application/zip", headers=headers)
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
