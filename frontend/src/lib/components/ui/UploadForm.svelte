@@ -3,6 +3,7 @@
         audioFile,
         videoFile,
         parts = $bindable(),
+        language = $bindable(),
         minParts,
         maxParts,
         isLoading,
@@ -14,6 +15,7 @@
         audioFile: File | null;
         videoFile: File | null;
         parts: number;
+        language: "fr" | "en";
         minParts: number;
         maxParts: number;
         isLoading: boolean;
@@ -88,6 +90,27 @@
                 </div>
             </div>
 
+            <div class="space-y-2 text-left">
+                <label
+                    for="language"
+                    class="block text-sm font-medium text-white"
+                >
+                    Subtitle language
+                </label>
+                <select
+                    id="language"
+                    class="input w-full preset-outline-surface-50-900 bg-surface-900/70 border-surface-100/30 text-surface-50"
+                    bind:value={language}
+                    disabled={isLoading}
+                >
+                    <option value="fr">French (default)</option>
+                    <option value="en">English</option>
+                </select>
+                <p class="text-xs text-surface-100/80">
+                    Choose the language used for the burned-in subtitles.
+                </p>
+            </div>
+
             <div class="space-y-3 text-left">
                 <label for="parts" class="block text-sm font-medium text-white">
                     Number of videos to generate
@@ -123,7 +146,7 @@
                     {#if isLoading}
                         <span
                             class="h-4 w-4 border-2 border-surface-50 border-t-transparent rounded-full animate-spin"
-                        />
+                        ></span>
                         <span>Generation currently being processed...</span>
                     {:else}
                         <span>Generate the videos</span>

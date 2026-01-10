@@ -16,10 +16,12 @@ async def generate_videos(
     audio: UploadFile = File(...),
     video: UploadFile = File(...),
     parts: int = Form(...),
+    language: str = Form("fr"),
 ):
     logger.info(
-        "Received /generate request: parts=%s, audio=%s, video=%s",
+        "Received /generate request: parts=%s, language=%s, audio=%s, video=%s",
         parts,
+        language,
         audio.filename,
         video.filename,
     )
@@ -28,9 +30,14 @@ async def generate_videos(
         logger.error("Invalid parts value: %s", parts)
         raise HTTPException(status_code=400, detail="parts must be between 1 and 30")
 
-    zip_buffer = await generate_segments_zip(audio=audio, video=video, parts=parts)
+    zip_buffer = await generate_segments_zip(
+        audio=audio,
+        video=video,
+        parts=parts,
+        language=language,
+    )
 
-    headers = {"Content-Disposition": 'attachment; filename=\"videos.zip\"'}
+    headers = {"Content-Disposition": 'attachment; filename="videos.zip"'}
     logger.info("Sending zip response")
     return StreamingResponse(zip_buffer, media_type="application/zip", headers=headers)
 

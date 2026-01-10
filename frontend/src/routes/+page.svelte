@@ -8,6 +8,8 @@
     const maxParts = 30;
 
     let parts: number = minParts;
+    let language: "fr" | "en" = "fr";
+
     let isLoading = false;
     let currentSegment = 0;
 
@@ -52,6 +54,7 @@
         formData.append("audio", audioFile);
         formData.append("video", videoFile);
         formData.append("parts", String(parts));
+        formData.append("language", language);
 
         try {
             const res = await fetch("http://localhost:8000/generate", {
@@ -86,6 +89,7 @@
 
     <UploadForm
         bind:parts
+        bind:language
         {audioFile}
         {videoFile}
         {minParts}

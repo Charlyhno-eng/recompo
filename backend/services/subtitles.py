@@ -9,9 +9,9 @@ _model: WhisperModel | None = None
 def get_model() -> WhisperModel:
     global _model
     if _model is None:
-        logger.info("Loading Faster-Whisper model (medium.en)...")
+        logger.info("Loading Faster-Whisper model (medium)...")
         _model = WhisperModel(
-            "medium.en",
+            "medium",
             device="cpu",
             compute_type="int8"
         )
@@ -30,26 +30,31 @@ def write_srt(segments: List[Tuple[int, float, float, str]], srt_path: str) -> N
     lines: list[str] = []
     for idx, start, end, text in segments:
         lines.append(str(idx))
-        lines.append(
-            f"{format_timestamp(start)} --> {format_timestamp(end)}"
-        )
+        lines.append(f"{format_timestamp(start)} --> {format_timestamp(end)}")
         lines.append(text.strip())
         lines.append("")
-
     with open(srt_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
-def generate_english_srt(
+def generate_srt(
     audio_path: str,
     srt_path: str,
+    language: str = "fr",
 ) -> None:
     model = get_model()
-    logger.info("Transcribing audio for subtitles: %s", audio_path)
+    logger.info("Transcribing audio for subtitles: %s (lang=%s)", audio_path, language)
+
+    if language == "en":
+        task = "translate"
+        lang_arg = None
+    else:
+        task = "transcribe"
+        lang_arg = None
 
     segments_iter, _info = model.transcribe(
         audio_path,
-        task="translate",
-        language=None,
+        task=task,
+        language=lang_arg,
         beam_size=5,
         word_timestamps=False,
     )

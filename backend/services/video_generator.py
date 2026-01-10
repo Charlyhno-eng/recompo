@@ -12,7 +12,7 @@ from .ffmpeg_utils import (
     mux_audio_video,
     burn_subtitles,
 )
-from .subtitles import generate_english_srt
+from .subtitles import generate_srt
 import logging
 
 logger = logging.getLogger("subtitle_video_app")
@@ -25,10 +25,14 @@ async def generate_segments_zip(
     audio: UploadFile,
     video: UploadFile,
     parts: int,
+    language: str,
 ) -> BinaryIO:
     global current_segment, total_segments
 
-    logger.info("generate_segments_zip called with parts=%s", parts)
+    if language not in ("fr", "en"):
+        language = "fr"
+
+    logger.info("generate_segments_zip called with parts=%s, language=%s", parts, language)
 
     if parts < 1 or parts > 30:
         raise HTTPException(status_code=400, detail="parts must be between 1 and 30")
@@ -74,8 +78,6 @@ async def generate_segments_zip(
 
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             for i in range(parts):
-                logger.info("Loop index i=%s (0-based)", i)
-
                 start = segment_duration * i
                 end = min(segment_duration * (i + 1), total_duration)
                 seg_dur = end - start
@@ -106,7 +108,6 @@ async def generate_segments_zip(
                     start=start,
                     duration=seg_dur,
                 )
-                logger.info("Audio segment written: %s", segment_audio_path)
 
                 looped_video_path = os.path.join(tmpdir, f"video_loop_{i+1:02d}.mp4")
                 loop_video_to_duration(
@@ -115,7 +116,6 @@ async def generate_segments_zip(
                     target_duration=seg_dur,
                     video_duration=video_duration,
                 )
-                logger.info("Looped video written: %s", looped_video_path)
 
                 trimmed_video_path = os.path.join(tmpdir, f"video_trim_{i+1:02d}.mp4")
                 trim_video(
@@ -123,37 +123,27 @@ async def generate_segments_zip(
                     output_video=trimmed_video_path,
                     duration=seg_dur,
                 )
-                logger.info("Trimmed video written: %s", trimmed_video_path)
 
                 base_output_path = os.path.join(tmpdir, f"segment_{i+1:02d}_nosubs.mp4")
-                logger.info("Muxing segment %s -> %s", i + 1, base_output_path)
                 mux_audio_video(
                     input_video=trimmed_video_path,
                     input_audio=segment_audio_path,
                     output_path=base_output_path,
                 )
-                logger.info("Muxed segment ready: %s", base_output_path)
 
                 srt_path = os.path.join(tmpdir, f"segment_{i+1:02d}.srt")
-                logger.info("Generating English subtitles for segment %s", i + 1)
-                generate_english_srt(
+                generate_srt(
                     audio_path=segment_audio_path,
                     srt_path=srt_path,
+                    language=language,
                 )
-                logger.info("SRT ready: %s", srt_path)
 
                 final_output_path = os.path.join(tmpdir, f"segment_{i+1:02d}.mp4")
-                logger.info(
-                    "Burning subtitles into video: %s -> %s",
-                    base_output_path,
-                    final_output_path,
-                )
                 burn_subtitles(
                     input_video=base_output_path,
                     srt_path=srt_path,
                     output_path=final_output_path,
                 )
-                logger.info("Final subtitled segment ready: %s", final_output_path)
 
                 with open(final_output_path, "rb") as f:
                     zip_file.writestr(f"segment_{i+1:02d}.mp4", f.read())
