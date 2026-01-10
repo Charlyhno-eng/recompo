@@ -101,6 +101,7 @@ async def generate_segments_zip(
                     seg_dur,
                 )
 
+                # 1) Segment audio MP3
                 segment_audio_path = os.path.join(tmpdir, f"audio_{i+1:02d}.mp3")
                 extract_audio_segment(
                     input_audio=audio_path,
@@ -109,6 +110,7 @@ async def generate_segments_zip(
                     duration=seg_dur,
                 )
 
+                # 2) Loop & trim video (image only)
                 looped_video_path = os.path.join(tmpdir, f"video_loop_{i+1:02d}.mp4")
                 loop_video_to_duration(
                     input_video=video_path,
@@ -124,6 +126,7 @@ async def generate_segments_zip(
                     duration=seg_dur,
                 )
 
+                # 3) Mux: image du MP4 + son MP3 segmenté (pas de son du MP4)
                 base_output_path = os.path.join(tmpdir, f"segment_{i+1:02d}_nosubs.mp4")
                 mux_audio_video(
                     input_video=trimmed_video_path,
@@ -131,6 +134,7 @@ async def generate_segments_zip(
                     output_path=base_output_path,
                 )
 
+                # 4) Génération des sous-titres depuis le MP3
                 srt_path = os.path.join(tmpdir, f"segment_{i+1:02d}.srt")
                 generate_srt(
                     audio_path=segment_audio_path,
@@ -138,6 +142,7 @@ async def generate_segments_zip(
                     language=language,
                 )
 
+                # 5) Burn-in des sous-titres
                 final_output_path = os.path.join(tmpdir, f"segment_{i+1:02d}.mp4")
                 burn_subtitles(
                     input_video=base_output_path,

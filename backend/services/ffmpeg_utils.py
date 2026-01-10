@@ -63,19 +63,20 @@ def mux_audio_video(
     input_audio: str,
     output_path: str,
 ) -> None:
+    """
+    Force: video from input_video, audio from input_audio (MP3 segment),
+    no audio from the original video is kept.
+    """
     cmd = [
         "ffmpeg",
         "-y",
-        "-i",
-        input_video,
-        "-i",
-        input_audio,
-        "-c:v",
-        "libx264",
-        "-c:a",
-        "aac",
-        "-pix_fmt",
-        "yuv420p",
+        "-i", input_video,   # [0] video only
+        "-i", input_audio,   # [1] audio only
+        "-map", "0:v:0",     # map first video's video stream
+        "-map", "1:a:0",     # map audio from MP3
+        "-c:v", "libx264",
+        "-c:a", "aac",
+        "-pix_fmt", "yuv420p",
         "-shortest",
         output_path,
     ]

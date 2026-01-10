@@ -2,6 +2,8 @@
 
 Recompo is a small web app that turns one long audio track and one looping visual (GIF or MP4) into multiple short, subtitled clips in English. Each segment gets its own burned‑in subtitles generated with Whisper, making the clips ready for social media.
 
+![Recompo interface](public/app.png)
+
 ## Features
 
 - Upload an audio file (MP3) and a visual file (MP4 or GIF).
