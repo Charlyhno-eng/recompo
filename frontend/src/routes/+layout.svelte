@@ -1,12 +1,12 @@
 <script lang="ts">
     import "./layout.css";
-    import favicon from "$lib/assets/favicon.svg";
+    import recompo from "$lib/assets/recompo.png";
 
     let { children } = $props();
 </script>
 
 <svelte:head>
-    <link rel="icon" href={favicon} />
+    <link rel="icon" type="image/png" href={recompo} />
 </svelte:head>
 
 {@render children()}

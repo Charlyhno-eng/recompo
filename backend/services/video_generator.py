@@ -17,15 +17,25 @@ import logging
 
 logger = logging.getLogger("subtitle_video_app")
 
+current_segment: int = 0
+total_segments: int = 0
+
+
 async def generate_segments_zip(
     audio: UploadFile,
     video: UploadFile,
     parts: int,
 ) -> BinaryIO:
-    if parts < 2 or parts > 30:
-        raise HTTPException(status_code=400, detail="parts must be between 2 and 30")
+    global current_segment, total_segments
+
+    logger.info("generate_segments_zip called with parts=%s", parts)
+
+    if parts < 1 or parts > 30:
+        raise HTTPException(status_code=400, detail="parts must be between 1 and 30")
 
     zip_buffer = io.BytesIO()
+    total_segments = parts
+    current_segment = 0
 
     with tempfile.TemporaryDirectory() as tmpdir:
         audio_path = os.path.join(tmpdir, audio.filename or "audio.mp3")
@@ -64,6 +74,8 @@ async def generate_segments_zip(
 
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             for i in range(parts):
+                logger.info("Loop index i=%s (0-based)", i)
+
                 start = segment_duration * i
                 end = min(segment_duration * (i + 1), total_duration)
                 seg_dur = end - start
@@ -77,6 +89,7 @@ async def generate_segments_zip(
                     )
                     continue
 
+                current_segment = i + 1
                 logger.info(
                     "Processing segment %s/%s: start=%.3f, end=%.3f, dur=%.3f",
                     i + 1,
@@ -112,7 +125,6 @@ async def generate_segments_zip(
                 )
                 logger.info("Trimmed video written: %s", trimmed_video_path)
 
-                # Mux audio + vidéo
                 base_output_path = os.path.join(tmpdir, f"segment_{i+1:02d}_nosubs.mp4")
                 logger.info("Muxing segment %s -> %s", i + 1, base_output_path)
                 mux_audio_video(
@@ -131,7 +143,11 @@ async def generate_segments_zip(
                 logger.info("SRT ready: %s", srt_path)
 
                 final_output_path = os.path.join(tmpdir, f"segment_{i+1:02d}.mp4")
-                logger.info("Burning subtitles into video: %s -> %s", base_output_path, final_output_path)
+                logger.info(
+                    "Burning subtitles into video: %s -> %s",
+                    base_output_path,
+                    final_output_path,
+                )
                 burn_subtitles(
                     input_video=base_output_path,
                     srt_path=srt_path,
@@ -144,5 +160,10 @@ async def generate_segments_zip(
 
         logger.info("All segments packed into zip")
 
+    current_segment = total_segments
     zip_buffer.seek(0)
     return zip_buffer
+
+
+def get_progress() -> dict:
+    return {"current": current_segment, "total": total_segments}

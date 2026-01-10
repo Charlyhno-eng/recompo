@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-multipart
+ffmpeg-python
+faster-whisper
+numpy
+torch
+torchaudio
+typing-extensions
+logging
+zipfile36
